@@ -1,0 +1,68 @@
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id       Int      @id @default(autoincrement())
+  name     String
+  email    String   @unique
+  password String
+  role     String   @default("ADMIN") // Only ADMIN for now
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String
+  slug     String    @unique
+  products Product[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Product {
+  id          Int       @id @default(autoincrement())
+  categoryId  Int
+  category    Category  @relation(fields: [categoryId], references: [id])
+  name        String
+  slug        String    @unique
+  description String
+  price       Float
+  stock       Int       @default(0)
+  imageUrl    String?
+  isActive    Boolean   @default(true)
+  orderItems  OrderItem[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Order {
+  id            Int         @id @default(autoincrement())
+  orderNumber   String      @unique // e.g., ORD-20260414-XXXX
+  customerName  String
+  customerEmail String
+  customerPhone String
+  shippingAddress String
+  totalAmount   Float
+  status        String      @default("PENDING") // PENDING, PAID, SHIPPED, COMPLETED, CANCELLED
+  paymentMethod String      @default("BANK_TRANSFER")
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        Int     @id @default(autoincrement())
+  orderId   Int
+  order     Order   @relation(fields: [orderId], references: [id])
+  productId Int
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float   // Price at the time of order
+}
